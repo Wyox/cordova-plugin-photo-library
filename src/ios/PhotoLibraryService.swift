@@ -514,7 +514,14 @@ final class PhotoLibraryService {
         }
 
         func fetchAssets(_ assetUrl: URL) {
-            let fetchResult = PHAsset.fetchAssets(withALAssetURLs: [assetUrl], options: nil)
+            // Sort the images by descending creation date and fetch the first 3
+            let fetchOptions = PHFetchOptions()
+            fetchOptions.sortDescriptors = [NSSortDescriptor(key:"creationDate", ascending: false)]
+            fetchOptions.fetchLimit = 1
+            
+            // Fetch the image assets
+            let fetchResult: PHFetchResult = PHAsset.fetchAssets(with: PHAssetMediaType.image, options: fetchOptions)
+            
             var libraryItem: NSDictionary? = nil
             if fetchResult.count == 1 {
                 let asset = fetchResult.firstObject
@@ -533,13 +540,17 @@ final class PhotoLibraryService {
                 let image: UIImage? = UIImage(data: sourceData);
                 
                 PHPhotoLibrary.shared().performChanges({
-                    PHAssetChangeRequest.creationRequestForAsset(from: image!);
+                    let assetRequest = PHAssetChangeRequest.creationRequestForAsset(from: image!);
+                    let albumChangeRequest = PHAssetCollectionChangeRequest(for: photoAlbum)
+                    let placeHolder = assetRequest.placeholderForCreatedAsset
+                    albumChangeRequest?.addAssets([placeHolder!] as NSArray)
+
                 }, completionHandler: { (isSuccess, error) in
                     
                     if isSuccess {
                         fetchAssets(imageUrl!)
                     } else {
-                        completion(nil, "Could not write image to album: \(String(describing: error?.localizedDescription)) debug: \(String(describing: error)) ")
+                        completion(nil, "Could not write image to album: \(String(describing: error?.localizedDescription))")
                     }
                 })
 
