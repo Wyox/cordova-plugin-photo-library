@@ -41,12 +41,12 @@ final class PhotoLibraryService {
     let mimeTypes = [
         "flv":  "video/x-flv",
         "mp4":  "video/mp4",
-        "m3u8":	"application/x-mpegURL",
+        "m3u8": "application/x-mpegURL",
         "ts":   "video/MP2T",
-        "3gp":	"video/3gpp",
-        "mov":	"video/quicktime",
-        "avi":	"video/x-msvideo",
-        "wmv":	"video/x-ms-wmv",
+        "3gp":  "video/3gpp",
+        "mov":  "video/quicktime",
+        "avi":  "video/x-msvideo",
+        "wmv":  "video/x-ms-wmv",
         "gif":  "image/gif",
         "jpg":  "image/jpeg",
         "jpeg": "image/jpeg",
@@ -134,7 +134,7 @@ final class PhotoLibraryService {
 
 
         
-	// TODO: do not restart caching on multiple calls
+    // TODO: do not restart caching on multiple calls
 //        if fetchResult.count > 0 {
 //
 //            var assets = [PHAsset]()
@@ -528,24 +528,23 @@ final class PhotoLibraryService {
         func saveImage(_ photoAlbum: PHAssetCollection) {
 
             if #available(iOS 9.0, *) {
+                
                 let imageUrl: URL? = URL(string:url)
-
+                let image: UIImage? = UIImage(data: sourceData);
+                
                 PHPhotoLibrary.shared().performChanges({
-                    let assetRequest = PHAssetChangeRequest.creationRequestForAssetFromImage(atFileURL: imageUrl!)!
-                    let albumChangeRequest = PHAssetCollectionChangeRequest(for: photoAlbum)
-                    let placeHolder = assetRequest.placeholderForCreatedAsset
-                    albumChangeRequest?.addAssets([placeHolder!] as NSArray)
-                }) { (isSuccess, error) in
+                    PHAssetChangeRequest.creationRequestForAsset(from: image!);
+                }, completionHandler: { (isSuccess, error) in
+                    
                     if isSuccess {
                         fetchAssets(imageUrl!)
                     } else {
-                        completion(nil, "Could not write video to album: \(String(describing: error))")
+                        completion(nil, "Could not write image to album: \(String(describing: error?.localizedDescription)) debug: \(String(describing: error)) ")
                     }
-                }
+                })
 
             } else {
                 let assetsLibrary = ALAssetsLibrary()
-
                 assetsLibrary.writeImageData(toSavedPhotosAlbum: sourceData, metadata: nil) { (assetUrl: URL?, error: Error?) in
 
                     if error != nil {
